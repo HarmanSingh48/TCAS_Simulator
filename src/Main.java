@@ -1,13 +1,15 @@
 public class Main {
     public static void main(String[] args) {
 
-        Application sim = new Application(60);
+        Application sim = new Application(60, false);
         sim.start();
-        try {
+       /* try {
             Thread.sleep(5000);
         } catch (InterruptedException e) {
             e.printStackTrace();
         }
-        sim.stop();
+
+        */
+        //sim.stop();
     }
 }

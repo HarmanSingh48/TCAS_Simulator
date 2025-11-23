@@ -1,17 +1,35 @@
+import java.io.BufferedReader;
+import java.io.File;
+import java.io.FileReader;
+import java.io.IOException;
+import java.util.LinkedList;
+import java.util.Random;
+import java.util.concurrent.ConcurrentHashMap;
+
 public class Application implements Runnable {
     private final double MAX_FPS = 120.0;
     private boolean isRunning = false;
+    private boolean debugEnabled = false;
     private final double FRAME_RATE;
-
+    private final int aircraftLimit = 4;
     private Thread simThread;
 
-    public Application(final double FRAME_RATE) throws IllegalCallerException{
+    private ConcurrentHashMap<String, Aircraft> spawnedAircraft;
+    private LinkedList<String> availableRegistrations;
+    private Random rng;
+    private long SEED = 12345;
+
+    public Application(final double FRAME_RATE, final boolean debugMode) throws IllegalArgumentException{
         if(FRAME_RATE < MAX_FPS) {
             this.FRAME_RATE = FRAME_RATE;
         } else {
             this.FRAME_RATE = 0;
             throw new IllegalArgumentException("Frame Rate too high. Max fps is 120.");
         }
+        this.spawnedAircraft = new ConcurrentHashMap<>();
+        generateRegistrations(aircraftLimit);
+        this.debugEnabled = debugMode;
+        rng = new Random(SEED);
     }
     public void start() {
         isRunning = true;
@@ -21,6 +39,38 @@ public class Application implements Runnable {
 
     public void stop(){
         isRunning = false;
+    }
+    private void generateRegistrations(int length) {
+        availableRegistrations = new LinkedList<>();
+        File regs = new File("src/regs.txt");
+        try (BufferedReader reader = new BufferedReader(new FileReader(regs))) {
+            String line;
+            int n = 0;
+            while((line = reader.readLine()) != null && n < length) {
+                availableRegistrations.add(line);
+                n++;
+            }
+        } catch (IOException e) {
+            System.err.println("File read error: " + e.getMessage());
+        }
+    }
+    private void updateAircraft(double dTime) {
+        int min = 0, max = 10000, maxZ = 32000, maxV = 250;
+        while(spawnedAircraft.size() < aircraftLimit) {
+            String reg = availableRegistrations.pop();
+            Aircraft a = new Aircraft(reg, new Vector3d(0), new Vector3d(0), true, true);
+            a.setPosition(new Vector3d(rng.nextDouble(min, max + 1), rng.nextDouble(min, max + 1), rng.nextDouble(min, maxZ + 1)));
+            a.setVelocity(new Vector3d(rng.nextDouble(50, maxV), rng.nextDouble(50, maxV), 0));
+            spawnedAircraft.put(reg, a);
+        }
+        for(Aircraft a : spawnedAircraft.values()) {
+
+            a.setPosition(a.getPosition().add(
+                    a.getVelocity().multiply(dTime * 3.6 * 1000000000000L)
+            ));
+
+            System.out.println(a);
+        }
     }
     @Override
     public void run() {
@@ -39,13 +89,13 @@ public class Application implements Runnable {
 
             while(deltaTime >= 1) {
                 //do stuff
-
+                updateAircraft(deltaTime);
                 numUpdates++;
                 deltaTime--;
             }
 
             numFrames++;
-            if(System.currentTimeMillis() - perfTimer > 1000){
+            if(System.currentTimeMillis() - perfTimer > 1000 && debugEnabled){
                 System.out.println("FPS: " + numFrames + " UPS: " + numUpdates);
             }
             try{

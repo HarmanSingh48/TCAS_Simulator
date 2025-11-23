@@ -1,10 +1,11 @@
 public abstract class Transponder {
     private String SquawkCode="1200";
     private final Aircraft OWNER;
-    private final String callsign;
+    private String callsign;
     private final boolean TcasAvailable;
     private boolean TA_Active;
     private boolean RA_Active;
+    private long timeSinceLastPing = 0;
 
     public Transponder(final String callsign, final String squawkCode, final Aircraft owner, final boolean isTcasAvailable) {
         this.OWNER = owner;
@@ -25,6 +26,10 @@ public abstract class Transponder {
 
     public Aircraft getOWNER() {
         return OWNER;
+    }
+
+    public void setCallsign(String callsign) {
+        this.callsign = callsign;
     }
 
     public String getCallsign() {
