@@ -11,10 +11,10 @@
         this.transponder = transponder;
         this.registration = registration;
     }
-    public Aircraft(final String registration, final Vector3d initialPos, final Vector3d initialV, final boolean isTCASEquipped, final boolean isModeS) {
+    public Aircraft(final String registration, final Vector3d initialPos, final Vector3d initialV, final boolean isTCASEquipped, final Transponder_Type type) {
         this.position = initialPos;
         this.velocity = initialV;
-        this.transponder = isModeS ?
+        this.transponder = type == Transponder_Type.MODE_S ?
                 new Mode_S_Transponder(1, registration, "1200", this, isTCASEquipped) :
                 new Mode_C_Transponder(registration, "1200", this, isTCASEquipped);
         this.registration = registration;
@@ -39,6 +39,17 @@
     public String getRegistration() { return registration; }
 
     public Transponder getTransponder() { return transponder; }
+
+    public void update(final double deltaT) {
+        updatePosition(deltaT);
+        this.transponder
+    }
+
+    private  void updatePosition(final double deltaT) {
+        this.setPosition(this.getPosition().add(
+                this.getVelocity().multiply(deltaT * 3.6 * 1000000000000L)
+        ));
+    }
 
     @Override
     public String toString() {

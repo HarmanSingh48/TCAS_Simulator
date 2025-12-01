@@ -1,19 +1,21 @@
+import java.util.concurrent.ConcurrentHashMap;
+
 public abstract class Transponder {
     private String SquawkCode="1200";
     private final Aircraft OWNER;
     private String callsign;
     private final boolean TcasAvailable;
-    private boolean TA_Active;
-    private boolean RA_Active;
+    private boolean TA_Active = false;
+    private boolean RA_Active = false;
+    private boolean issuePing = false;
     private long timeSinceLastPing = 0;
+    private ConcurrentHashMap<String, Aircraft> detected_Aircrafts = new ConcurrentHashMap<>();
 
     public Transponder(final String callsign, final String squawkCode, final Aircraft owner, final boolean isTcasAvailable) {
         this.OWNER = owner;
         this.callsign = callsign;
         this.SquawkCode = squawkCode;
         this.TcasAvailable = isTcasAvailable;
-        this.TA_Active = false;
-        this.RA_Active = false;
     }
 
     public String getSquawkCode() {
@@ -43,8 +45,20 @@ public abstract class Transponder {
         return this.RA_Active;
     }
     public boolean isTcasEquipped() {return this.TcasAvailable;}
+    public boolean isPinging() {return this.issuePing;}
+    public abstract Transponder_Ping issuePing();
 
     public abstract TCAS_Reply interogate(Transponder sender);
+    public void update(double deltaT) {
+        this.timeSinceLastPing += deltaT;
+        if(timeSinceLastPing >= 1.0E9) {
+            issuePing = true;
+            timeSinceLastPing = 0;
+        } else {
+            issuePing = false;
+            timeSinceLastPing += deltaT;
+        }
+    }
 
     @Override
     public boolean equals(Object obj) {

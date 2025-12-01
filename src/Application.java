@@ -7,7 +7,7 @@ import java.util.Random;
 import java.util.concurrent.ConcurrentHashMap;
 
 public class Application implements Runnable {
-    private final double MAX_FPS = 120.0;
+    private final static double MAX_FPS = 120.0;
     private boolean isRunning = false;
     private boolean debugEnabled = false;
     private final double FRAME_RATE;
@@ -15,9 +15,10 @@ public class Application implements Runnable {
     private Thread simThread;
 
     private ConcurrentHashMap<String, Aircraft> spawnedAircraft;
+    private ConcurrentHashMap<String, Sendable> messageQueue = new ConcurrentHashMap<>();
     private LinkedList<String> availableRegistrations;
     private Random rng;
-    private long SEED = 12345;
+    private final static long SEED = 12345;
 
     public Application(final double FRAME_RATE, final boolean debugMode) throws IllegalArgumentException{
         if(FRAME_RATE < MAX_FPS) {
@@ -54,44 +55,50 @@ public class Application implements Runnable {
             System.err.println("File read error: " + e.getMessage());
         }
     }
-    private void updateAircraft(double dTime) {
-        int min = 0, max = 10000, maxZ = 32000, maxV = 250;
+    private void populateUniverse() {
         while(spawnedAircraft.size() < aircraftLimit) {
-            String reg = availableRegistrations.pop();
-            Aircraft a = new Aircraft(reg, new Vector3d(0), new Vector3d(0), true, true);
-            a.setPosition(new Vector3d(rng.nextDouble(min, max + 1), rng.nextDouble(min, max + 1), rng.nextDouble(min, maxZ + 1)));
-            a.setVelocity(new Vector3d(rng.nextDouble(50, maxV), rng.nextDouble(50, maxV), 0));
-            spawnedAircraft.put(reg, a);
+            spawnRandomAircraft();
         }
+    }
+    private void updateAircraft(double dTime) {
+        populateUniverse();
         for(Aircraft a : spawnedAircraft.values()) {
-
-            a.setPosition(a.getPosition().add(
-                    a.getVelocity().multiply(dTime * 3.6 * 1000000000000L)
-            ));
-
+            a.update(dTime);
             System.out.println(a);
         }
+    }
+    private void spawnRandomAircraft() {
+        int min = 0, max = 10000, maxZ = 32000, maxV = 250;
+        String reg = availableRegistrations.pop();
+        Aircraft a = new Aircraft(reg, new Vector3d(0), new Vector3d(0), true, Transponder_Type.MODE_C);
+        a.setPosition(new Vector3d(rng.nextDouble(min, max + 1), rng.nextDouble(min, max + 1), rng.nextDouble(min, maxZ + 1)));
+        a.setVelocity(new Vector3d(rng.nextDouble(50, maxV), rng.nextDouble(50, maxV), 0));
+        spawnedAircraft.put(reg, a);
+    }
+    private void clearScreen(){
+        System.out.print("\033[H\033[2J");
+        System.out.flush();
     }
     @Override
     public void run() {
         long prevTime = System.nanoTime(), perfTimer = System.currentTimeMillis();
         double nanoPerFrame = 1000000000 / this.FRAME_RATE;
-        double deltaTime = 0;
+        double rateAccum = 0;
 
         int numFrames = 0, numUpdates = 0;
 
         while (isRunning) {
             long currTime = System.nanoTime();
 
-            deltaTime += (currTime - prevTime) / nanoPerFrame;
+            rateAccum += (currTime - prevTime) / nanoPerFrame;
 
             prevTime = currTime;
 
-            while(deltaTime >= 1) {
+            while(rateAccum >= 1) {
                 //do stuff
-                updateAircraft(deltaTime);
+                updateAircraft(currTime - prevTime);
                 numUpdates++;
-                deltaTime--;
+                rateAccum--;
             }
 
             numFrames++;
