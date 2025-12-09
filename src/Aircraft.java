@@ -1,7 +1,21 @@
     public class Aircraft {
+    /**
+     * The position of the aircraft in cartesian coordinates, with (x,y) being the lateral positions and the z-value
+     * being the altitude. Values are represented in feet. Therefore, check the units before any calculations.
+     */
     private Vector3d position;
+    /**
+     * Stores the value for the aircraft's speed as a 3d vector of the velocity's x-, y-, and z- components
+     * in feet per second.
+     */
     private Vector3d velocity;
+    /**
+     * The aircraft's transponder object
+     */
     private final Transponder transponder;
+    /**
+     * The aircraft's registration
+     */
     private final String registration;
 
     //Constructor
@@ -42,7 +56,7 @@
 
     public void update(final double deltaT) {
         updatePosition(deltaT);
-        this.transponder
+        this.transponder.update(deltaT);
     }
 
     private  void updatePosition(final double deltaT) {
