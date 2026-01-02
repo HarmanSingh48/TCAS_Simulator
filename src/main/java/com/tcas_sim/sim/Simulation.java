@@ -15,7 +15,6 @@ import java.util.Random;
 import java.util.concurrent.ConcurrentHashMap;
 
 
-import main.java.com.tcas_sim.math.IdentityGenerator;
 import main.java.com.tcas_sim.math.Vector3d;
 
 public class Simulation implements Runnable {
@@ -166,7 +165,7 @@ public class Simulation implements Runnable {
         for(Transponder_Ping p : messageHandler.getAllPings()) {
             p.accept(aircraft);
         }
-        for(Interrogation_Result i : messageHandler.getAllReplies()) {
+        for(Reply i : messageHandler.getAllReplies()) {
             i.accept(aircraft);
         }
     }

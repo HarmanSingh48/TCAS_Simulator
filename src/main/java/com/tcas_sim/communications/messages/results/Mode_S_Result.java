@@ -4,7 +4,7 @@ import main.java.com.tcas_sim.communications.messagevisitor.MessageVisitor;
 import main.java.com.tcas_sim.components.Aircraft;
 import main.java.com.tcas_sim.math.Vector3d;
 
-public class Mode_S_Result extends Interrogation_Result {
+public class Mode_S_Result extends Reply {
     private final long ICAO_IDENTITY;
     private final String callsign;
     private final String Squawk_Code;

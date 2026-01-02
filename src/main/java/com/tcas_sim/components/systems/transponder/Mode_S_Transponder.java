@@ -1,14 +1,11 @@
 package main.java.com.tcas_sim.components.systems.transponder;
 
-import main.java.com.tcas_sim.communications.messages.results.Interrogation_Result;
 import main.java.com.tcas_sim.communications.messages.results.Mode_C_Result;
 import main.java.com.tcas_sim.communications.messages.results.Mode_S_Result;
 import main.java.com.tcas_sim.communications.messages.transmissions.Mode_C_Ping;
 import main.java.com.tcas_sim.communications.messages.transmissions.Mode_S_Ping;
-import main.java.com.tcas_sim.communications.messages.transmissions.Transponder_Ping;
 import main.java.com.tcas_sim.components.Aircraft;
 import main.java.com.tcas_sim.components.systems.tcas.TCAS;
-import main.java.com.tcas_sim.components.systems.tcas.TCA_System;
 
 public class Mode_S_Transponder extends Transponder {
     private final long IDENTITY;
