@@ -1,13 +1,24 @@
+package main.java.com.tcas_sim.sim;
+
+
+
+import main.java.com.tcas_sim.communications.messages.transmissions.*;
+import main.java.com.tcas_sim.communications.messages.results.*;
+import main.java.com.tcas_sim.components.Aircraft;
+
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
-import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.Random;
 import java.util.concurrent.ConcurrentHashMap;
 
-public class Application implements Runnable {
+
+import main.java.com.tcas_sim.math.IdentityGenerator;
+import main.java.com.tcas_sim.math.Vector3d;
+
+public class Simulation implements Runnable {
     /**
      * Controls the maximum FPS limit of sim
      */
@@ -36,15 +47,7 @@ public class Application implements Runnable {
      * Collection of the aircraft that are currently spawned in the simulation
      */
     private final ConcurrentHashMap<String, Aircraft> spawnedAircraft;
-    /**
-     * List of outgoing pings between aircraft. Pings are added to this list to be registered in the sim
-     */
-    private LinkedList<Transponder_Ping> pingQueue = new LinkedList<>();
-
-    /**
-     * List of outgoing pings between aircraft. Pings are added to this list to be registered in the sim
-     */
-    private LinkedList<Sendable> replyQueue = new LinkedList<>();
+    private final MessageHandler messageHandler = new MessageHandler();
     /**
      * Sequential list of the aircraft registrations. A randomly spawned plane will take the next available registration on this list.
      * List is generated at runtime from a file called 'regs.txt.'
@@ -65,7 +68,7 @@ public class Application implements Runnable {
      * @param debugMode whether the sim starts with debug mode on.
      * @throws IllegalArgumentException if frame rate specifies is greater than MAX_FPS
      */
-    public Application(final double FRAME_RATE, final boolean debugMode) throws IllegalArgumentException{
+    public Simulation(final double FRAME_RATE, final boolean debugMode) throws IllegalArgumentException{
         if(FRAME_RATE < MAX_FPS) {
             this.FRAME_RATE = FRAME_RATE;
         } else {
@@ -130,9 +133,7 @@ public class Application implements Runnable {
         populateUniverse();
         for(Aircraft a : spawnedAircraft.values()) {
             a.update(dTime);
-            if(a.getTransponder().isPinging()) {
-                this.pingQueue.add(a.getTransponder().issuePing());
-            }
+            processCurrentMessages(a);
             System.out.println(a);
         }
     }
@@ -150,45 +151,24 @@ public class Application implements Runnable {
             spawnedAircraft.put(reg, a);
         }
     }
-
-    /**
-     * Broadcast the given Mode-C ping and return a list of aircraft hit by the ping.
-     * @param pingMC The Mode C ping to broadcast to the universe.
-     * @return List of aircraft that were hit by the ping.
-     */
-    private ArrayList<Aircraft> checkWithinRange(Mode_C_Ping pingMC) {
-        ArrayList<Aircraft> r = new ArrayList<>();
-        for(Aircraft a : spawnedAircraft.values()) {
-            if (pingMC.checkWithinBounds(a.getPosition())) {
-                r.add(a);
-            }
-        }
-
-
-        return r;
-    }
-
-    /**
-     * Simulate a Mode-C ping on the universe.
-     * @param ping THe Mode C Ping to simulate.
-     */
-    private void handlePing(Mode_C_Ping ping) {
-        ArrayList<Aircraft> withinRange = checkWithinRange((Mode_C_Ping) ping);
-    }
-
-    /**
-     * Simulate a Mode-S ping on the universe.
-     * @param ping The Mode S ping to simulate.
-     */
-    private void handlePing(Mode_S_Ping ping) {
-
-    }
-
     /**
      * Go through the message queue and handle
      */
-    private void manageQueue() {
+    private void updateMessagesForNextTick() {
+        for(Aircraft a : spawnedAircraft.values()) {
+            if(!a.getTransponder().getOutBox().isEmpty()) {
+                this.messageHandler.scheduleAll(a.getTransponder().getOutBox());
+            }
+        }
+    }
 
+    private void processCurrentMessages(Aircraft aircraft) {
+        for(Transponder_Ping p : messageHandler.getAllPings()) {
+            p.accept(aircraft);
+        }
+        for(Interrogation_Result i : messageHandler.getAllReplies()) {
+            i.accept(aircraft);
+        }
     }
     private void clearScreen(){
         System.out.print("\033[H\033[2J");
@@ -207,15 +187,14 @@ public class Application implements Runnable {
 
             rateAccum += (currTime - prevTime) / nanoPerFrame;
 
-            prevTime = currTime;
-
             while(rateAccum >= 1) {
                 //do stuff
                 updateAircraft(currTime - prevTime);
                 numUpdates++;
                 rateAccum--;
             }
-
+            prevTime = currTime;
+            messageHandler.advanceLists();
             numFrames++;
             if(System.currentTimeMillis() - perfTimer > 1000 && debugEnabled){
                 System.out.println("FPS: " + numFrames + " UPS: " + numUpdates);
