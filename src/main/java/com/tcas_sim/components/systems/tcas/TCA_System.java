@@ -43,12 +43,12 @@ public class TCA_System implements TCAS, Transmitter {
 
     @Override
     public void process(Mode_C_Result res) {
-        updateModeCTrack(res.getPingCenter());
+        updateModeCTrack(res.getCenter());
     }
 
     @Override
     public void process(Mode_S_Ping ping) {
-        updateModeSTrack(ping.getTargetID(), ping.getPingCenter());
+        updateModeSTrack(ping.getTargetID(), ping.getCenter());
 
     }
 

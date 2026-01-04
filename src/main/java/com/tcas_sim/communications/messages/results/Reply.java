@@ -4,6 +4,9 @@ import main.java.com.tcas_sim.communications.messages.transmissions.Transmission
 import main.java.com.tcas_sim.components.Aircraft;
 import main.java.com.tcas_sim.math.*;
 
+/**
+ *
+ */
 public abstract class Reply extends Transmission {
     final Vector3d position;
     final Aircraft target;
