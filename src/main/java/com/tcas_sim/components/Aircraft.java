@@ -1,4 +1,17 @@
-    public class Aircraft {
+package main.java.com.tcas_sim.components;
+
+import main.java.com.tcas_sim.communications.messages.results.Mode_C_Result;
+import main.java.com.tcas_sim.communications.messages.results.Mode_S_Result;
+import main.java.com.tcas_sim.communications.messages.transmissions.*;
+import main.java.com.tcas_sim.communications.messagevisitor.MessageVisitor;
+import main.java.com.tcas_sim.components.systems.tcas.NullTCA_System;
+import main.java.com.tcas_sim.components.systems.tcas.TCAS;
+import main.java.com.tcas_sim.components.systems.tcas.TCA_System;
+import main.java.com.tcas_sim.components.systems.transponder.*;
+import main.java.com.tcas_sim.components.systems.transponder.Transponder;
+import main.java.com.tcas_sim.math.*;
+
+public class Aircraft implements MessageVisitor {
     /**
      * The position of the aircraft in cartesian coordinates, with (x,y) being the lateral positions and the z-value
      * being the altitude. Values are represented in feet. Therefore, check the units before any calculations.
@@ -17,6 +30,10 @@
      * The aircraft's registration
      */
     private final String registration;
+    /**
+     * The reference for the TCAS computer
+     */
+    private final TCAS TCAS_Computer;
 
     //Constructor
     public Aircraft(final String registration, final Vector3d initialPos, final Vector3d initialV, final Transponder transponder) {
@@ -24,14 +41,17 @@
         this.velocity = initialV;
         this.transponder = transponder;
         this.registration = registration;
+        this.TCAS_Computer = new TCA_System();
     }
     public Aircraft(final String registration, final Vector3d initialPos, final Vector3d initialV, final boolean isTCASEquipped, final Transponder_Type type) {
         this.position = initialPos;
         this.velocity = initialV;
+        this.TCAS_Computer = isTCASEquipped ? new TCA_System() : new NullTCA_System();
         this.transponder = type == Transponder_Type.MODE_S ?
-                new Mode_S_Transponder(1, registration, "1200", this, isTCASEquipped) :
-                new Mode_C_Transponder(registration, "1200", this, isTCASEquipped);
+                new Mode_S_Transponder(1, registration, "1200", this, this.TCAS_Computer) :
+                new Mode_C_Transponder(registration, "1200", this);
         this.registration = registration;
+
     }
     //Getters and Setters
     public Vector3d getPosition() {
@@ -58,6 +78,9 @@
         updatePosition(deltaT);
         this.transponder.update(deltaT);
     }
+    public void receive(Transmission t) {
+        t.accept(this);
+    }
 
     private  void updatePosition(final double deltaT) {
         this.setPosition(this.getPosition().add(
@@ -69,4 +92,24 @@
     public String toString() {
         return registration + " reporting position at " + this.position.toString() + ". Speed: " + this.velocity.toString() +"\n";
     }
+
+    @Override
+    public void visit(Mode_S_Ping sPing) {
+        transponder.processPing(sPing);
     }
+
+    @Override
+    public void visit(Mode_C_Ping cPing) {
+        transponder.processPing(cPing);
+    }
+
+    @Override
+    public void visit(Mode_S_Result sRes) {
+        transponder.processReply(sRes);
+    }
+
+    @Override
+    public void visit(Mode_C_Result cRes) {
+        transponder.processReply(cRes);
+    }
+}
