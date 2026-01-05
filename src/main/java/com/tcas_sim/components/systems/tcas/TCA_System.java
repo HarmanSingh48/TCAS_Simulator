@@ -1,6 +1,5 @@
 package main.java.com.tcas_sim.components.systems.tcas;
 
-import main.java.com.tcas_sim.communications.Transmitter;
 import main.java.com.tcas_sim.communications.messages.results.Reply;
 import main.java.com.tcas_sim.communications.messages.results.Mode_C_Result;
 import main.java.com.tcas_sim.communications.messages.results.Mode_S_Result;
@@ -14,7 +13,7 @@ import java.util.HashMap;
 import java.util.List;
 
 
-public class TCA_System implements TCAS, Transmitter {
+public class TCA_System implements TCAS {
     private final HashMap<Long, Track> detectedModeS = new HashMap<>();
     private final ArrayList<Track> detectedModeC = new ArrayList<>();
     private final ArrayList<Transmission> outBox = new ArrayList<>();
@@ -34,7 +33,6 @@ public class TCA_System implements TCAS, Transmitter {
     private void updateModeCTrack(final Vector3d pos) {
 
     }
-    @Override
     public List<Transmission> getOutBox() {return this.outBox;}
     @Override
     public void process(Mode_S_Result res) {
