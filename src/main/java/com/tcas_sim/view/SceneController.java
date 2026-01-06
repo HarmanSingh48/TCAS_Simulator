@@ -1,27 +1,28 @@
 package main.java.com.tcas_sim.view;
 
+import javafx.application.Platform;
 import javafx.event.ActionEvent;
+import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Node;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.stage.Stage;
+import main.java.com.tcas_sim.view.scenes.MenuScene;
+import main.java.com.tcas_sim.view.scenes.SettingsScene;
 
 public class SceneController {
     private Stage stage;
     private Parent root;
-    private Scene menuScene;
+    private MenuScene menuScene;
     private Scene runScene;
-    private Scene settingScene;
-    private FXMLLoader loader;
+    private SettingsScene settingScene;
+
     public SceneController() {
         try {
-            loader = new FXMLLoader(getClass().getResource("/main/resources/app.fxml"));
-            loader.setController(this);
-            menuScene = new Scene(loader.load());
+            menuScene = new MenuScene(this);
 
-            root = FXMLLoader.load(getClass().getResource("/main/resources/Settings.fxml"));
-            settingScene = new Scene(root);
+            settingScene = new SettingsScene();
 
             root = FXMLLoader.load(getClass().getResource("/main/resources/Simulation.fxml"));
             runScene = new Scene(root);
@@ -31,22 +32,32 @@ public class SceneController {
             System.out.printf(e.getMessage());
         }
     }
-    public void switchToMenu(ActionEvent e) {
+    @FXML
+    private void switchToMenu(ActionEvent e) {
         stage = (Stage) ((Node)e.getSource()).getScene().getWindow();
-        stage.setScene(menuScene);
+        stage.setScene(menuScene.getScene());
         stage.show();
     }
-
-    public void startApplication(ActionEvent e) {
+    @FXML
+    private void startApplication(ActionEvent e) {
         stage = (Stage) ((Node)e.getSource()).getScene().getWindow();
         stage.setScene(runScene);
         stage.show();
     }
-
-    public void switchToSettings(ActionEvent e) {
+    @FXML
+    private void switchToSettings(ActionEvent e) {
         stage = (Stage) ((Node)e.getSource()).getScene().getWindow();
-        stage.setScene(settingScene);
+        stage.setScene(settingScene.getScene());
         stage.show();
     }
+    @FXML
+    private void exitApp(ActionEvent e) {
+        Platform.exit();
+    }
+
+    public SettingsController getSettingController() {
+        return this.settingScene.getController();
+    }
+
 
 }
