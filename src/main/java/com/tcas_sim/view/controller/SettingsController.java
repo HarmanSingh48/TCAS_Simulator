@@ -1,22 +1,27 @@
-package main.java.com.tcas_sim.view;
+package main.java.com.tcas_sim.view.controller;
 
-import javafx.beans.property.*;
-import javafx.beans.value.ChangeListener;
-import javafx.beans.value.ObservableValue;
+import javafx.beans.property.BooleanProperty;
+import javafx.beans.property.DoubleProperty;
+import javafx.beans.property.SimpleBooleanProperty;
+import javafx.beans.property.SimpleDoubleProperty;
 import javafx.event.ActionEvent;
+import javafx.event.EventHandler;
 import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
+import javafx.scene.control.Button;
 import javafx.scene.control.CheckBox;
 import javafx.scene.control.Slider;
 
 import java.net.URL;
 import java.util.ResourceBundle;
 
-public class SettingsController implements Initializable {
+public class SettingsController extends SceneController implements Initializable {
     @FXML
     CheckBox debugCheckBox;
     @FXML
     Slider volumeSlider;
+    @FXML
+    Button settingsBackButton;
 
     private final SimpleBooleanProperty isDebugEnabled = new SimpleBooleanProperty(false);
 
@@ -35,6 +40,9 @@ public class SettingsController implements Initializable {
 
     public BooleanProperty isDebugEnabledProperty() {
         return isDebugEnabled;
+    }
+    public void setEventHandlerForBackButton(EventHandler<ActionEvent> eH) {
+        settingsBackButton.setOnAction(eH);
     }
 
     @Override

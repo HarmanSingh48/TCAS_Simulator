@@ -102,7 +102,7 @@ public class Simulation implements Runnable {
      */
     private void generateRegistrations(int length) {
         availableRegistrations = new LinkedList<>();
-        File regs = new File("src/regs.txt");
+        File regs = new File("src/main/resources/regs.txt");
         try (BufferedReader reader = new BufferedReader(new FileReader(regs))) {
             String line;
             int n = 0;
