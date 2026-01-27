@@ -1,4 +1,4 @@
-package main.java.com.tcas_sim.math;
+package main.java.com.tcas_sim.util.math;
 
 public record Vector3d(double x, double y, double z) {
     public Vector3d(double val){
@@ -37,5 +37,15 @@ public record Vector3d(double x, double y, double z) {
     @Override
     public String toString() {
         return "(" + x + ", " + y + ", " + z + ")";
+    }
+    @Override
+    public boolean equals(Object other) {
+        if(this == other ) {
+            return true;
+        }
+        if(!(other instanceof Vector3d(double x1, double y1, double z1))) {
+            return false;
+        }
+        return x == x1 && y == y1 && z == z1;
     }
 }

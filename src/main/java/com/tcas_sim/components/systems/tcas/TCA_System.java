@@ -5,7 +5,7 @@ import main.java.com.tcas_sim.communications.messages.results.Mode_C_Result;
 import main.java.com.tcas_sim.communications.messages.results.Mode_S_Result;
 import main.java.com.tcas_sim.communications.messages.transmissions.Mode_S_Ping;
 import main.java.com.tcas_sim.communications.messages.transmissions.Transmission;
-import main.java.com.tcas_sim.math.Vector3d;
+import main.java.com.tcas_sim.util.math.Vector3d;
 
 
 import java.util.ArrayList;

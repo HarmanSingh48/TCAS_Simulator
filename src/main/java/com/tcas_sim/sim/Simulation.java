@@ -10,14 +10,16 @@ import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.LinkedList;
+import java.util.List;
 import java.util.Random;
 import java.util.concurrent.ConcurrentHashMap;
 
 
-import main.java.com.tcas_sim.math.Vector3d;
+import main.java.com.tcas_sim.util.math.Vector3d;
 
-public class Simulation implements Runnable {
+public class Simulation {
     /**
      * Controls the maximum FPS limit of sim
      */
@@ -37,7 +39,7 @@ public class Simulation implements Runnable {
     /**
      * The maximum number of aircraft that can be spawned in at once
      */
-    private final int aircraftLimit = 4;
+    private final int aircraftLimit = 1;
     /**
      * The thread that the sim runs in
      */
@@ -59,7 +61,9 @@ public class Simulation implements Runnable {
     /**
      * The seed for the random number generator
      */
-    private final static long SEED = 12345;
+    private final long SEED = System.currentTimeMillis();
+
+    private long prevTime = System.nanoTime(), currTime;
 
     /**
      * Constructor for an application.
@@ -85,8 +89,6 @@ public class Simulation implements Runnable {
      */
     public void start() {
         isRunning = true;
-        simThread = new Thread(this);
-        simThread.start();
     }
 
     /**
@@ -96,6 +98,11 @@ public class Simulation implements Runnable {
         isRunning = false;
     }
 
+    public List<Vector3d> getAircraftPositions() {
+        return new ArrayList<>(
+                this.spawnedAircraft.values().stream().map(Aircraft::getPosition).toList()
+        );
+    }
     /**
      * Generates the list of registrations.
      * @param length the number of registrations to load.
@@ -133,7 +140,9 @@ public class Simulation implements Runnable {
         for(Aircraft a : spawnedAircraft.values()) {
             a.update(dTime);
             processCurrentMessages(a);
+            if(debugEnabled) {
             System.out.println(a);
+            }
         }
     }
 
@@ -142,11 +151,14 @@ public class Simulation implements Runnable {
      */
     private void spawnRandomAircraft() {
         if(spawnedAircraft.size() < aircraftLimit) {
-            int min = 0, max = 10000, maxZ = 32000, maxV = 250;
+            int min = 0, max = 1080, maxZ = 32000, maxV = 5;
             String reg = availableRegistrations.pop();
             Aircraft a = new Aircraft(reg, new Vector3d(0), new Vector3d(0), true, Transponder_Type.MODE_C);
             a.setPosition(new Vector3d(rng.nextDouble(min, max + 1), rng.nextDouble(min, max + 1), rng.nextDouble(min, maxZ + 1)));
-            a.setVelocity(new Vector3d(rng.nextDouble(50, maxV), rng.nextDouble(50, maxV), 0));
+            if(debugEnabled){
+                System.out.println("On Init: " + a.getPosition());
+            }
+            a.setVelocity(new Vector3d(rng.nextDouble(0, maxV), rng.nextDouble(0, maxV), 0));
             spawnedAircraft.put(reg, a);
         }
     }
@@ -173,16 +185,20 @@ public class Simulation implements Runnable {
         System.out.print("\033[H\033[2J");
         System.out.flush();
     }
-    @Override
-    public void run() {
-        long prevTime = System.nanoTime(), perfTimer = System.currentTimeMillis();
+
+    public void run2(final long time) {
+        updateAircraft(time - prevTime);
+        prevTime = time;
+    }
+
+    public void run(final long time) {
+        long perfTimer = System.currentTimeMillis();
         double nanoPerFrame = 1000000000 / this.FRAME_RATE;
         double rateAccum = 0;
 
         int numFrames = 0, numUpdates = 0;
 
         while (isRunning) {
-            long currTime = System.nanoTime();
 
             rateAccum += (currTime - prevTime) / nanoPerFrame;
 
@@ -197,11 +213,6 @@ public class Simulation implements Runnable {
             numFrames++;
             if(System.currentTimeMillis() - perfTimer > 1000 && debugEnabled){
                 System.out.println("FPS: " + numFrames + " UPS: " + numUpdates);
-            }
-            try{
-                Thread.sleep(1);
-            } catch (InterruptedException e) {
-                e.printStackTrace();
             }
         }
     }

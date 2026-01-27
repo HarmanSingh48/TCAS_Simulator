@@ -9,7 +9,7 @@ import main.java.com.tcas_sim.components.systems.tcas.TCAS;
 import main.java.com.tcas_sim.components.systems.tcas.TCA_System;
 import main.java.com.tcas_sim.components.systems.transponder.*;
 import main.java.com.tcas_sim.components.systems.transponder.Transponder;
-import main.java.com.tcas_sim.math.*;
+import main.java.com.tcas_sim.util.math.Vector3d;
 
 public class Aircraft implements MessageVisitor {
     /**
@@ -83,8 +83,9 @@ public class Aircraft implements MessageVisitor {
     }
 
     private  void updatePosition(final double deltaT) {
+       // System.out.println("Delta:" + deltaT);
         this.setPosition(this.getPosition().add(
-                this.getVelocity().multiply(deltaT * 3.6 * 1000000000000L)
+                this.getVelocity().multiply(deltaT * 1E-9)
         ));
     }
 

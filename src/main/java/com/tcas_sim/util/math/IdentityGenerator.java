@@ -1,4 +1,4 @@
-package main.java.com.tcas_sim.math;
+package main.java.com.tcas_sim.util.math;
 
 import java.util.HashMap;
 

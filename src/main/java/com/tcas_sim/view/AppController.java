@@ -1,5 +1,6 @@
 package main.java.com.tcas_sim.view;
 
+import javafx.animation.AnimationTimer;
 import javafx.application.Platform;
 import javafx.scene.Node;
 import javafx.scene.image.Image;
@@ -19,6 +20,7 @@ public class AppController {
     private final MediaPlayer audio;
     private Simulation sim;
     private final Stage window;
+    private AnimationTimer timer;
 
     //Scenes
     private ControlledScene<RunController> simScene;
@@ -46,6 +48,7 @@ public class AppController {
         setUpListeners();
         setUpStage(stage);
         setUpAudio();
+        audio.setMute(true);
 
         //Display Window
         audio.play();
@@ -85,7 +88,8 @@ public class AppController {
             stage.setScene(simScene.getScene());
             stage.show();
             sim = new Simulation(60, isDebug);
-            sim.start();
+            initTimer();
+            timer.start();
         });
 
         menuScene.getController().getMenuSettingsButton().setOnAction((e) -> {
@@ -130,6 +134,15 @@ public class AppController {
     private void setUpAudio() {
         audio.setCycleCount(MediaPlayer.INDEFINITE);
         audio.setAutoPlay(true);
+    }
+    private void initTimer() {
+        timer = new AnimationTimer() {
+            @Override
+            public void handle(long l) {
+                sim.run2(l);
+                simScene.getController().draw(sim.getAircraftPositions());
+            }
+        };
     }
 
     private static class ImageLoader {
