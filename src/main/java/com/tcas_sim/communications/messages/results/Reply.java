@@ -2,7 +2,8 @@ package main.java.com.tcas_sim.communications.messages.results;
 
 import main.java.com.tcas_sim.communications.messages.transmissions.Transmission;
 import main.java.com.tcas_sim.components.Aircraft;
-import main.java.com.tcas_sim.math.*;
+import main.java.com.tcas_sim.util.math.Sphere;
+import main.java.com.tcas_sim.util.math.Vector3d;
 
 /**
  * Extension of Transmission class that represents a reply to a ping

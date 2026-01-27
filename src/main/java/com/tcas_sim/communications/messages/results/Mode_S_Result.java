@@ -2,7 +2,7 @@ package main.java.com.tcas_sim.communications.messages.results;
 
 import main.java.com.tcas_sim.communications.messagevisitor.MessageVisitor;
 import main.java.com.tcas_sim.components.Aircraft;
-import main.java.com.tcas_sim.math.Vector3d;
+import main.java.com.tcas_sim.util.math.Vector3d;
 
 /**
  * A Mode-S Reply.

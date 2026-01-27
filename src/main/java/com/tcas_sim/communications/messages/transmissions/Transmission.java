@@ -2,7 +2,8 @@ package main.java.com.tcas_sim.communications.messages.transmissions;
 
 import main.java.com.tcas_sim.communications.messagevisitor.MessageVisitor;
 import main.java.com.tcas_sim.components.Aircraft;
-import main.java.com.tcas_sim.math.*;
+import main.java.com.tcas_sim.util.math.Sphere;
+import main.java.com.tcas_sim.util.math.Vector3d;
 
 /**
  * Class representing a sendable message in the simulation-space.

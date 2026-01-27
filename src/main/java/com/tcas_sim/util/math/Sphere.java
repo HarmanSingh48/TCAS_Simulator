@@ -1,4 +1,4 @@
-package main.java.com.tcas_sim.math;
+package main.java.com.tcas_sim.util.math;
 
 public record Sphere(Vector3d center, double radius) {
     public boolean checkWithinBoundsInclusive(Vector3d point) {
