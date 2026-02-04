@@ -18,6 +18,7 @@ import java.util.concurrent.ConcurrentHashMap;
 
 
 import main.java.com.tcas_sim.util.math.Vector3d;
+import main.java.com.tcas_sim.util.transfer.AircraftDataTransfer;
 
 public class Simulation {
     /**
@@ -39,7 +40,7 @@ public class Simulation {
     /**
      * The maximum number of aircraft that can be spawned in at once
      */
-    private final int aircraftLimit = 1;
+    private final int aircraftLimit = 2;
     /**
      * The thread that the sim runs in
      */
@@ -98,7 +99,17 @@ public class Simulation {
         isRunning = false;
     }
 
-    public List<Vector3d> getAircraftPositions() {
+
+    public List<AircraftDataTransfer> getAircraftAsDTOs() {
+        return new ArrayList<>(
+                this.spawnedAircraft.values().stream().map(this::createDTO).toList()
+        );
+    }
+
+    private AircraftDataTransfer createDTO(Aircraft aircraft) {
+        return new AircraftDataTransfer(aircraft.getRegistration(), aircraft.getPosition(), false, false);
+    }
+    public List<Vector3d> getAircraftAsVectors() {
         return new ArrayList<>(
                 this.spawnedAircraft.values().stream().map(Aircraft::getPosition).toList()
         );
