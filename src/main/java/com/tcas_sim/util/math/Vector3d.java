@@ -10,6 +10,7 @@ public record Vector3d(double x, double y, double z) {
     public Vector3d add(double addend) {
         return new Vector3d(this.x + addend, this.y + addend, this.z + addend);
     }
+    public Vector3d add(double x1, double y1, double z1) {return new Vector3d(this.x + x1, this.y + y1, this.z + z1);}
     public Vector3d add(Vector3d other) {
         return new Vector3d(this.x + other.x, this.y + other.y, this.z + other.z);
     }

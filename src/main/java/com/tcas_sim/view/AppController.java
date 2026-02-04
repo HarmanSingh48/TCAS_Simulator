@@ -140,7 +140,7 @@ public class AppController {
             @Override
             public void handle(long l) {
                 sim.run2(l);
-                simScene.getController().draw(sim.getAircraftPositions());
+                simScene.getController().draw(sim.getAircraftAsDTOs());
             }
         };
     }
