@@ -1,16 +1,17 @@
 package main.java.com.tcas_sim.view.controller;
 
+import javafx.beans.binding.Bindings;
+import javafx.beans.property.Property;
+import javafx.beans.property.SimpleDoubleProperty;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
 import javafx.fxml.Initializable;
 import javafx.scene.Cursor;
-import javafx.scene.Node;
 import javafx.scene.canvas.Canvas;
 import javafx.scene.canvas.GraphicsContext;
 import javafx.scene.layout.AnchorPane;
 import javafx.scene.layout.VBox;
 import javafx.scene.paint.Color;
-import javafx.scene.text.Font;
 import javafx.scene.text.Text;
 import javafx.scene.transform.Affine;
 import main.java.com.tcas_sim.util.math.GraphicsContants;
@@ -55,6 +56,7 @@ public class RunController extends SceneController implements Initializable {
     private InputHandler inputHandler;
 
     private HashMap<String, Entity> entities;
+    private HashMap<String, Property<?>> properties;
     private List<Entity> selectedPlanes;
 
     @Override
@@ -70,6 +72,7 @@ public class RunController extends SceneController implements Initializable {
 
         inputHandler =  new InputHandler();
         entities = new HashMap<>();
+        properties = new HashMap<>();
         selectedPlanes = new ArrayList<>();
         setUpEventListeners();
     }
@@ -139,8 +142,6 @@ public class RunController extends SceneController implements Initializable {
     public void draw(List<AircraftDataTransfer> positions) {
         viewAffine = gContext.getTransform();
         updateEntities(positions);
-        //entities.clear();
-        //entities.addAll(positions);
         /*
         Layer 1: Background
          */
@@ -153,7 +154,7 @@ public class RunController extends SceneController implements Initializable {
         Layer 2: Dynamic UI Layer
          */
         //Draw Radar Contacts
-        drawEntities(entities.values().stream().toList(), gContext);
+        drawEntitiesAndAttributes(entities.values().stream().toList(), gContext);
 
 
         /*
@@ -167,31 +168,43 @@ public class RunController extends SceneController implements Initializable {
     }
 
     /**
-     * Draw the specified entities on the canvas.
-     * @param positions the positions of the entities to draw.
+     * Draw the specified entities and their respective attributes on the canvas.
+     * @param entities the list of the entities to draw.
      * @param gc the graphics context to render on.
      */
-    private void drawEntities(List<Entity> positions, final GraphicsContext gc) {
+    private void drawEntitiesAndAttributes(List<Entity> entities, final GraphicsContext gc) {
         //Set stroke for drawing plane contact
         gc.setFill(Color.web("#00FF00", 0.5));
         gc.setLineWidth(4);
 
 
         //Draw each plane
-        for(Entity p : positions) {
-            drawEntityPosition(p, gc);
-            drawEntityAttributes(p, gc);
+        for(Entity e : entities) {
+            drawEntityPosition(e, gc);
+            drawEntityAttributes(e, gc);
         }
     }
+
+    /**
+     * Draw a specific entity on the canvas.
+     * @param theEntity the entity object to draw.
+     * @param gc the graphics context to render on.
+     */
 
     private void drawEntityPosition(Entity theEntity, GraphicsContext gc) {
         gc.fillRect(theEntity.getPos().x(), theEntity.getPos().y(), GraphicsContants.ENTITY_DRAW_SIZE,GraphicsContants.ENTITY_DRAW_SIZE);
     }
 
+    /**
+     * Draw the specified entity's attributes to the canvas.
+     * @param theEntity the entity object whose attributes need to be drawn.
+     * @param gc the graphics context to render on.
+     */
+
     private void drawEntityAttributes(Entity theEntity, GraphicsContext gc) {
         if(theEntity.isSelected()) {
             gc.setStroke(Color.RED);
-            gc.setLineWidth(2);
+            gc.setLineWidth(1);
             gc.strokeRect(theEntity.getPos().x() - GraphicsContants.ENTITY_ATTRIBUTE_OFFSET,
                     theEntity.getPos().y() - GraphicsContants.ENTITY_ATTRIBUTE_OFFSET,
                     GraphicsContants.ENTITY_SELECTED_OUTLINE_SIZE,
@@ -233,8 +246,6 @@ public class RunController extends SceneController implements Initializable {
     private boolean checkWithinInRectangle(Vector3d lb, Vector3d ub, Vector3d pos) {
         return pos.x() >= lb.x() && pos.y() >= lb.y() && pos.x() <= ub.x() && pos.y() <= ub.y();
     }
-
-
 
     private void selectAircraft(List<Entity> positions) {
         //Lower-left corner of the rectangle
@@ -285,13 +296,30 @@ public class RunController extends SceneController implements Initializable {
         try {
             //Add all selected planes
             for (Entity e : selectedPlanes) {
-                targetInfoBox.getChildren().add(AnchorPaneLoader.createNewPaneWithText(e.aircraftData.callsign()));
+                AnchorPane a = AnchorPaneLoader.createNewPaneWithEntity(e);
+                setUpBindingsForPane(a, e);
+                targetInfoBox.getChildren().add(a);
             }
         } catch (IOException e) {
             e.printStackTrace();
         }
     }
 
+    private void setUpBindingsForPane(AnchorPane a, Entity e) {
+        //Grab the title text node
+        Text textNode = (Text) a.lookup("#titleText");
+        //Display the aircraft's callsign
+        textNode.setText(e.getData().callsign());
+
+        //Get the info text node
+        textNode = (Text) a.lookup("#aircraftInfoText");
+        //Bin
+        textNode.textProperty().bind(formatString(e));
+    }
+
+    private static javafx.beans.binding.StringExpression formatString(Entity e) {
+        return Bindings.concat("Position: ", e.posXProperty().asString("%.2f"),", ", e.posYProperty().asString("%.2f") ,"\nAltitude: ",e.altitudeProperty().asString("%.2f"), " ft. Bearing: ", e.bearingProperty().asString("%.2f"), " (TRUE)");
+    }
     private class InputHandler {
         InputHandler() {}
 
@@ -350,14 +378,35 @@ public class RunController extends SceneController implements Initializable {
     private class Entity {
         private boolean selected;
         private AircraftData aircraftData;
+        private final SimpleDoubleProperty bearingProperty;
+        private final SimpleDoubleProperty altitudeProperty;
+        private final SimpleDoubleProperty posXProperty;
+        private final SimpleDoubleProperty posYProperty;
+
+        public SimpleDoubleProperty altitudeProperty() {
+            return altitudeProperty;
+        }
+        public SimpleDoubleProperty posXProperty() {
+            return posXProperty;
+        }
+        public SimpleDoubleProperty posYProperty() {
+            return posYProperty;
+        }
+        public SimpleDoubleProperty bearingProperty() {
+            return bearingProperty;
+        }
+
         Entity(AircraftDataTransfer data) {
-            updateData(data);
+            bearingProperty = new SimpleDoubleProperty(data.bearing());
+            posXProperty= new SimpleDoubleProperty(data.pos().x());
+            posYProperty = new SimpleDoubleProperty(data.pos().y());
+            altitudeProperty = new SimpleDoubleProperty(data.pos().z());
             selected = false;
+            updateData(data);
         }
         public boolean isSelected() {
             return selected;
         }
-
         public void setSelected(boolean selected) {
             this.selected = selected;
         }
@@ -367,21 +416,46 @@ public class RunController extends SceneController implements Initializable {
         public AircraftData getData() {return this.aircraftData;}
 
         public void updateData(AircraftDataTransfer data) {
-            this.aircraftData = new AircraftData(data.callsign(), data.pos(), data.isTA(), data.isRA());
+            this.aircraftData = new AircraftData(data.callsign(), data.pos(), data.bearing(), data.isTA(), data.isRA());
+            updateProperties();
         }
-
-        private record AircraftData(String callsign,Vector3d pos, boolean isTA, boolean isRA) {
+        private void updateProperties() {
+            bearingProperty.set(getData().bearing());
+            posXProperty.set(getPos().x());
+            posYProperty.set(getPos().y());
+            altitudeProperty.set(getPos().z());
+        }
+        private record AircraftData(String callsign,Vector3d pos,double bearing, boolean isTA, boolean isRA) {
         }
     }
     private static class AnchorPaneLoader {
+
         private static AnchorPane createNewPane() throws IOException {
-            FXMLLoader loader = new FXMLLoader(AnchorPaneLoader.class.getResource("/main/resources/TargetInfoTextPane.fxml"));
-            return loader.load();
+            FXMLLoader infoPaneLoader = new FXMLLoader(AnchorPaneLoader.class.getResource("/main/resources/TargetInfoTextPane.fxml"));
+            return infoPaneLoader.load();
         }
         private static AnchorPane createNewPaneWithText(String s) throws IOException {
-            FXMLLoader loader = new FXMLLoader(AnchorPaneLoader.class.getResource("/main/resources/TargetInfoTextPane.fxml"));
-            AnchorPane p = loader.load();
+            FXMLLoader infoPaneLoader = new FXMLLoader(AnchorPaneLoader.class.getResource("/main/resources/TargetInfoTextPane.fxml"));
+            AnchorPane p = infoPaneLoader.load();
             ((Text)p.getChildren().getFirst()).setText(s);
+            return p;
+        }
+
+        private static AnchorPane createNewPaneWithEntity(Entity e) throws IOException {
+            //Setup loader with file
+            FXMLLoader infoPaneLoader = new FXMLLoader(AnchorPaneLoader.class.getResource("/main/resources/TargetInfoTextPane.fxml"));
+            //Load the pane from fxml loader
+            AnchorPane p = infoPaneLoader.load();
+            //Set the anchor's ID to the callsign of the aircraft
+            //p.setId(e.getData().callsign());
+            //Grab the title field
+            Text textNode = (Text) p.lookup("#titleText");
+
+            //Check if there was a proper return from the search
+            if(textNode != null) {
+                //Set the A/C's callsign to the title text
+                textNode.setText(e.getData().callsign());
+            }
             return p;
         }
     }

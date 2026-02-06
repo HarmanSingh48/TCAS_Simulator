@@ -107,7 +107,7 @@ public class Simulation {
     }
 
     private AircraftDataTransfer createDTO(Aircraft aircraft) {
-        return new AircraftDataTransfer(aircraft.getRegistration(), aircraft.getPosition(), false, false);
+        return new AircraftDataTransfer(aircraft.getRegistration(), aircraft.getPosition(), aircraft.getBearing(),false, false);
     }
     public List<Vector3d> getAircraftAsVectors() {
         return new ArrayList<>(

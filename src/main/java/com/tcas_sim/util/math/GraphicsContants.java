@@ -13,10 +13,10 @@ public final class GraphicsContants {
 
     public static final double CAMERA_DRAG_COEFF = 0.945;
 
-    public static final double ENTITY_DRAW_SIZE = 5.0;
+    public static final double ENTITY_DRAW_SIZE = 6.0;
 
-    public static final double ENTITY_ATTRIBUTE_OFFSET =3;
-    public static final double ENTITY_SELECTED_OUTLINE_SIZE = 11.0;
+    public static final double ENTITY_ATTRIBUTE_OFFSET = 3;
+    public static final double ENTITY_SELECTED_OUTLINE_SIZE = 12.0;
 
     private GraphicsContants() {
         throw new UnsupportedOperationException("Utility class cannot be instantiated.");
