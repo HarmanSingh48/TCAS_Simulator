@@ -46,7 +46,7 @@ public class Aircraft implements MessageVisitor {
         this.transponder = transponder;
         this.registration = registration;
         this.TCAS_Computer = new TCA_System();
-        this.bearing = updateBearing(initialPos, initialV);
+        this.bearing = MathHelper.updateBearing(initialPos, initialV);
     }
     public Aircraft(final String registration, final Vector3d initialPos, final Vector3d initialV, final boolean isTCASEquipped, final Transponder_Type type) {
         this.position = initialPos;
@@ -85,25 +85,14 @@ public class Aircraft implements MessageVisitor {
         updatePositionAndBearing(deltaT);
         this.transponder.update(deltaT);
     }
-    private static double updateBearing(Vector3d initialPos, Vector3d velocity) {
-        //Extrapolate the position using the velocity to some point in the future. The step in time can be any number, big or small (within reason),
-        //since we need 2 points of position separated in time to get a bearing, regardless of how far they are from each other.
-        Vector3d extrapolated = initialPos.add(velocity);
-        return calculateBearing(initialPos.x(), initialPos.y(), extrapolated.x(), extrapolated.y());
-    }
-    private static double calculateBearing(double x1, double y1, double x2, double y2) {
-        return Math.toDegrees(Math.atan2(x2 - x1, y2 - y1)) + 360;
-    }
 
     public void receive(Transmission t) {
         t.accept(this);
     }
 
     private  void updatePositionAndBearing(final double deltaT) {
-        this.setPosition(this.getPosition().add(
-                this.getVelocity().multiply(deltaT * 1E-9)
-        ));
-        this.bearing = updateBearing(this.getPosition(), this.getVelocity());
+        this.setPosition(MathHelper.updatePosition(this.getPosition(), this.getVelocity(), deltaT));
+        this.setBearing(MathHelper.updateBearing(this.getPosition(), this.getVelocity()));
     }
 
     @Override
@@ -129,5 +118,27 @@ public class Aircraft implements MessageVisitor {
     @Override
     public void visit(Mode_C_Result cRes) {
         transponder.processReply(cRes);
+    }
+
+    @Override
+    public void visit(Squitter squitter) {
+        transponder.processPing(squitter);
+    }
+
+    private static class MathHelper {
+        public static Vector3d updatePosition(final Vector3d currPos, final Vector3d currVelocity, final double deltaTime) {
+            return currPos.add(
+                    currVelocity.multiply(deltaTime * 1E-9)
+            );
+        }
+        public static double updateBearing(Vector3d initialPos, Vector3d velocity) {
+            //Extrapolate the position using the velocity to some point in the future. The step in time can be any number, big or small (within reason),
+            //since we need 2 points of position separated in time to get a bearing, regardless of how far they are from each other.
+            Vector3d extrapolated = initialPos.add(velocity);
+            return calculateBearing(initialPos.x(), initialPos.y(), extrapolated.x(), extrapolated.y());
+        }
+        private static double calculateBearing(double x1, double y1, double x2, double y2) {
+            return Math.toDegrees(Math.atan2(x2 - x1, y2 - y1)) + 360;
+        }
     }
 }

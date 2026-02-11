@@ -4,6 +4,7 @@ import main.java.com.tcas_sim.communications.messages.results.Mode_C_Result;
 import main.java.com.tcas_sim.communications.messages.results.Mode_S_Result;
 import main.java.com.tcas_sim.communications.messages.transmissions.Mode_C_Ping;
 import main.java.com.tcas_sim.communications.messages.transmissions.Mode_S_Ping;
+import main.java.com.tcas_sim.communications.messages.transmissions.Squitter;
 import main.java.com.tcas_sim.communications.messages.transmissions.Transmission;
 import main.java.com.tcas_sim.components.Aircraft;
 
@@ -31,7 +32,7 @@ public abstract class Transponder {
     /**
      * Time (in milliseconds) since the last emitted ping of this transponder.
      */
-    protected long timeSinceLastPing = 0;
+    protected double timeSinceLastPing = 0;
 
     /**
      *
@@ -120,5 +121,7 @@ public abstract class Transponder {
         return this.SquawkCode.equals((
                 (Transponder)obj).SquawkCode);
     }
+
+    public abstract void processPing(Squitter squitter);
 }
 

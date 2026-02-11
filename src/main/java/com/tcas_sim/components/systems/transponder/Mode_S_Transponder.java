@@ -4,8 +4,10 @@ import main.java.com.tcas_sim.communications.messages.results.Mode_C_Result;
 import main.java.com.tcas_sim.communications.messages.results.Mode_S_Result;
 import main.java.com.tcas_sim.communications.messages.transmissions.Mode_C_Ping;
 import main.java.com.tcas_sim.communications.messages.transmissions.Mode_S_Ping;
+import main.java.com.tcas_sim.communications.messages.transmissions.Squitter;
 import main.java.com.tcas_sim.components.Aircraft;
 import main.java.com.tcas_sim.components.systems.tcas.TCAS;
+import main.java.com.tcas_sim.util.math.MathConstants;
 
 /**
  * Extension of the Transponder class that represents a Mode-S Transponder
@@ -49,6 +51,9 @@ public class Mode_S_Transponder extends Transponder {
      */
     public long getIdentity(){return this.IDENTITY;}
 
+    private Mode_S_Ping createPing() {
+        return new Mode_S_Ping();
+    }
 
     @Override
     public void processReply(Mode_C_Result reply) {
@@ -78,13 +83,17 @@ public class Mode_S_Transponder extends Transponder {
 
     @Override
     public void update(double deltaT) {
-        this.timeSinceLastPing += (long) deltaT;
-        if(timeSinceLastPing >= 1.0E9) {
-            //TODO:ISSUE MESSAGE
-            timeSinceLastPing -= (long) 1.0E9;
-        } else {
-            timeSinceLastPing += (long) deltaT;
+        this.timeSinceLastPing += deltaT;
+        if(timeSinceLastPing > MathConstants.Time.SECOND_AS_NANOSECONDS) {
+            this.getOutBox().add(createPing());
+            this.timeSinceLastPing = 0;
+            System.out.println(this.getOWNER().getRegistration() + " just pinged!");
         }
+    }
+
+    @Override
+    public void processPing(Squitter squitter) {
+
     }
 
 

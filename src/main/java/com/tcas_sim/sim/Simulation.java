@@ -199,6 +199,7 @@ public class Simulation {
 
     public void run2(final long time) {
         updateAircraft(time - prevTime);
+        updateMessagesForNextTick();
         prevTime = time;
     }
 

@@ -4,13 +4,17 @@ import main.java.com.tcas_sim.communications.messages.results.Mode_C_Result;
 import main.java.com.tcas_sim.communications.messages.results.Mode_S_Result;
 import main.java.com.tcas_sim.communications.messages.transmissions.Mode_C_Ping;
 import main.java.com.tcas_sim.communications.messages.transmissions.Mode_S_Ping;
+import main.java.com.tcas_sim.communications.messages.transmissions.Squitter;
 import main.java.com.tcas_sim.components.Aircraft;
+import main.java.com.tcas_sim.components.systems.tcas.TCAS;
+import main.java.com.tcas_sim.util.math.MathConstants;
 
 public class Mode_C_Transponder extends Transponder {
-
     public Mode_C_Transponder(final String callsign, final String squawkCode, final Aircraft Owner) {
         super(callsign, squawkCode, Owner);
     }
+
+
 
 
     @Override
@@ -35,6 +39,11 @@ public class Mode_C_Transponder extends Transponder {
 
     @Override
     public void update(double deltaT) {
+
+    }
+
+    @Override
+    public void processPing(Squitter squitter) {
 
     }
 

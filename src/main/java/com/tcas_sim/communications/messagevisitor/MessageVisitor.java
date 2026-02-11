@@ -4,6 +4,7 @@ import main.java.com.tcas_sim.communications.messages.results.Mode_C_Result;
 import main.java.com.tcas_sim.communications.messages.results.Mode_S_Result;
 import main.java.com.tcas_sim.communications.messages.transmissions.Mode_C_Ping;
 import main.java.com.tcas_sim.communications.messages.transmissions.Mode_S_Ping;
+import main.java.com.tcas_sim.communications.messages.transmissions.Squitter;
 
 /**
  * A Visitor Interface implemented by classes that need the ability to receive a Transponder transmission.
@@ -32,5 +33,7 @@ public interface MessageVisitor {
      * @param cRes the Mode-C result.
      */
     void visit(Mode_C_Result cRes);
+
+    void visit(Squitter squitter);
 
 }

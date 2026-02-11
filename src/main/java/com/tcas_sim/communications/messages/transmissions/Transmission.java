@@ -21,13 +21,14 @@ public abstract class Transmission {
 
     /**
      * Constructor.
-     * @param origin The center of the transmission.
+     * @param origin The sphere of influence of the ping, defined by a center and a radius.
      * @param sender The sending Aircraft.
      */
     public Transmission(final Sphere origin, final Aircraft sender) {
         this.origin = origin;
         this.sender = sender;
     }
+
 
     /**
      * Get the effective range of the transmission.
