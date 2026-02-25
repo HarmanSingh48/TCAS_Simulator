@@ -33,11 +33,6 @@ public abstract class Transponder {
      * Time (in milliseconds) since the last emitted ping of this transponder.
      */
     protected double timeSinceLastPing = 0;
-
-    /**
-     *
-     */
-    private LinkedList<Integer> queueOfPingRanges = new LinkedList<>();
     /**
      * The list of outgoing transmissions of this transponder.
      */
@@ -79,8 +74,6 @@ public abstract class Transponder {
         return callsign;
     }
 
-
-    public int getNextPingRange(){return this.queueOfPingRanges.isEmpty() ? 15 : this.queueOfPingRanges.pop();}
 
     /**
      * Process a Mode C reply.

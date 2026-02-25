@@ -2,6 +2,7 @@ package main.java.com.tcas_sim.communications.messages.transmissions;
 
 import main.java.com.tcas_sim.communications.messagevisitor.MessageVisitor;
 import main.java.com.tcas_sim.components.Aircraft;
+import main.java.com.tcas_sim.util.math.MathConstants;
 import main.java.com.tcas_sim.util.math.Sphere;
 import main.java.com.tcas_sim.util.math.Vector3d;
 
@@ -31,10 +32,16 @@ public abstract class Transmission {
 
 
     /**
+     * Get the effective range of the transmission in feet.
+     * @return The range of the transmission.
+     */
+    public double getRangeInFeet() {return this.origin.radius() * MathConstants.Distance.ConversionFactors.NAUTICAL_MILES_TO_FEET;}
+
+    /**
      * Get the effective range of the transmission.
      * @return The range of the transmission.
      */
-    public double getRange() {return this.origin.radius();}
+    public double getRangeInNauticalMiles() {return this.origin.radius();}
 
     /**
      * Get the center of the Transmission.

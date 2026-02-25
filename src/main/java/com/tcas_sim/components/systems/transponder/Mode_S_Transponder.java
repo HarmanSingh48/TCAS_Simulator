@@ -7,7 +7,10 @@ import main.java.com.tcas_sim.communications.messages.transmissions.Mode_S_Ping;
 import main.java.com.tcas_sim.communications.messages.transmissions.Squitter;
 import main.java.com.tcas_sim.components.Aircraft;
 import main.java.com.tcas_sim.components.systems.tcas.TCAS;
+import main.java.com.tcas_sim.components.systems.tcas.TCA_System;
 import main.java.com.tcas_sim.util.math.MathConstants;
+
+import java.util.LinkedList;
 
 /**
  * Extension of the Transponder class that represents a Mode-S Transponder
@@ -23,6 +26,13 @@ public class Mode_S_Transponder extends Transponder {
     private final TCAS TCAS_Computer;
 
     /**
+     *
+     */
+    private LinkedList<Integer> queueOfPingRanges = new LinkedList<>();
+
+
+
+    /**
      * Constructor.
      * @param ICAO_IDENTIFIER The Aircraft's unique Identity
      * @param callsign The Aircraft's call-sign/Flight ID
@@ -35,6 +45,7 @@ public class Mode_S_Transponder extends Transponder {
         this.IDENTITY = ICAO_IDENTIFIER;
         this.TCAS_Computer = tcas;
     }
+    public int getNextPingRange(){return this.queueOfPingRanges.isEmpty() ? 0 : this.queueOfPingRanges.pop();}
 
     /**
      * Generate a Mode S Reply
@@ -51,8 +62,19 @@ public class Mode_S_Transponder extends Transponder {
      */
     public long getIdentity(){return this.IDENTITY;}
 
-    private Mode_S_Ping createPing() {
-        return new Mode_S_Ping();
+    private Squitter createSquitter() {
+        return new Squitter(this.getOWNER(), MathConstants.Distance.ConversionFactors.NAUTICAL_MILES_TO_FEET * 45);
+    }
+    private void broadcastToOtherMode_S(final double deltaT) {
+        this.timeSinceLastPing += deltaT;
+        if(timeSinceLastPing > MathConstants.Time.SECOND_AS_NANOSECONDS) {
+            this.getOutBox().add(createSquitter());
+            this.timeSinceLastPing = 0;
+            System.out.println(this.getOWNER().getRegistration() + " just pinged!");
+        }
+    }
+    private void broadcastToMode_C(final double deltaT) {
+
     }
 
     @Override
@@ -83,17 +105,18 @@ public class Mode_S_Transponder extends Transponder {
 
     @Override
     public void update(double deltaT) {
-        this.timeSinceLastPing += deltaT;
-        if(timeSinceLastPing > MathConstants.Time.SECOND_AS_NANOSECONDS) {
-            this.getOutBox().add(createPing());
-            this.timeSinceLastPing = 0;
-            System.out.println(this.getOWNER().getRegistration() + " just pinged!");
+        //Broadcast a ping every second
+        broadcastToOtherMode_S(deltaT);
+        this.TCAS_Computer.update(deltaT);
+        if(!((TCA_System)this.TCAS_Computer).getOutBox().isEmpty()) {
+            this.getOutBox().addAll(((TCA_System)this.TCAS_Computer).getOutBox());
         }
+
     }
 
     @Override
     public void processPing(Squitter squitter) {
-
+        this.TCAS_Computer.process(squitter);
     }
 
 
